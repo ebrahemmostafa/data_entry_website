@@ -23,15 +23,44 @@
             <small>متابعة المشي اليومية</small>
           </span>
         </a>
-        <div class="topbar-actions">
+        <div class="topbar-actions" id="topbarActions">
+          <span class="user-email" id="userEmail" aria-live="polite"></span>
           <button class="icon-button" id="settingsButton" type="button" aria-label="فتح الإعدادات" title="الإعدادات">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"/><path d="m19.4 13.5 1.3 1-.9 1.6-1.6-.5a7.6 7.6 0 0 1-1.2 1.2l.5 1.6-1.6.9-1-1.3c-.5.2-1 .3-1.5.4l-.3 1.7h-1.8l-.3-1.7a7.6 7.6 0 0 1-1.6-.4l-1 1.3-1.6-.9.5-1.6a7.6 7.6 0 0 1-1.2-1.2l-1.6.5-.9-1.6 1.3-1c-.2-.5-.3-1-.4-1.5l-1.7-.3V10l1.7-.3c.1-.5.2-1 .4-1.5l-1.3-1 .9-1.6 1.6.5a7.6 7.6 0 0 1 1.2-1.2l-.5-1.6 1.6-.9 1 1.3c.5-.2 1-.3 1.6-.4l.3-1.7h1.8l.3 1.7c.5.1 1 .2 1.5.4l1-1.3 1.6.9-.5 1.6a7.6 7.6 0 0 1 1.2 1.2l1.6-.5.9 1.6-1.3 1c.2.5.3 1 .4 1.5l1.7.3v1.8l-1.7.3c-.1.5-.2 1-.4 1.5Z"/></svg>
           </button>
-          <button class="avatar" type="button" aria-label="الحساب الشخصي">م</button>
+          <button class="avatar" id="userAvatar" type="button" aria-label="الحساب الشخصي">م</button>
+          <button class="logout-button" id="logoutButton" type="button">خروج</button>
         </div>
       </header>
 
-      <main id="top">
+      <section class="auth-screen" id="authScreen" aria-labelledby="authTitle">
+        <div class="auth-card">
+          <div class="auth-symbol" aria-hidden="true">↗</div>
+          <p class="section-kicker">بياناتك معاك في كل مكان</p>
+          <h1 id="authTitle">سجّلي دخولك للمتابعة</h1>
+          <p class="auth-copy">اعملي حسابًا بسيطًا عشان تسجيلات المشي تفضل محفوظة وتظهر من أي جهاز.</p>
+          <form id="authForm" novalidate>
+            <div class="field-group">
+              <label for="authEmail">البريد الإلكتروني</label>
+              <input id="authEmail" type="email" autocomplete="email" placeholder="example@email.com" required />
+            </div>
+            <div class="field-group">
+              <label for="authPassword">كلمة المرور</label>
+              <input id="authPassword" type="password" autocomplete="current-password" minlength="6" placeholder="٦ أحرف على الأقل" required />
+            </div>
+            <div class="field-group auth-confirm-field" id="authConfirmField">
+              <label for="authPasswordConfirm">تأكيد كلمة المرور</label>
+              <input id="authPasswordConfirm" type="password" autocomplete="new-password" minlength="6" placeholder="اكتبيها مرة ثانية" />
+            </div>
+            <button class="primary-button" id="authSubmit" type="submit">تسجيل الدخول <span aria-hidden="true">←</span></button>
+            <p class="auth-message" id="authMessage" role="status" aria-live="polite"></p>
+          </form>
+          <button class="auth-switch" id="authModeToggle" type="button">إنشاء حساب جديد</button>
+          <p class="auth-note">استخدمي نفس البريد وكلمة المرور على أي جهاز تريدين فتح السجل منه.</p>
+        </div>
+      </section>
+
+      <main id="top" class="app-content">
         <section class="welcome-section" aria-labelledby="welcomeTitle">
           <div>
             <p class="eyebrow"><span class="live-dot"></span> متابعة اليوم</p>
@@ -138,7 +167,7 @@
         </section>
       </main>
 
-      <footer><span>خطوات صغيرة، فرق كبير.</span><span>البيانات محفوظة على هذا الجهاز فقط</span></footer>
+      <footer class="page-footer"><span>خطوات صغيرة، فرق كبير.</span><span>البيانات محفوظة أونلاين ومؤمّنة بحسابك</span></footer>
     </div>
 
     <dialog id="settingsDialog" class="settings-dialog">
@@ -151,6 +180,6 @@
       </form>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>
