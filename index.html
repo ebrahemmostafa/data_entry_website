@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1e6b5a" />
+    <meta name="description" content="متابعة المشي اليومية وملاحظة التحسن مع الوقت" />
+    <title>خطواتي — متابعة المشي اليومية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="العودة إلى بداية الصفحة">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" role="img"><path d="M21.4 7.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2Zm-3.1 6.1c-.5-.2-1.1 0-1.4.5l-2.5 4.5c-.2.4-.2.8 0 1.2l2.5 4.3-3.7 5.8c-.4.6-.2 1.4.4 1.8.6.4 1.4.2 1.8-.4l4-6.3c.3-.4.3-1 0-1.5l-2.2-3.8 1.3-2.4 1.8 2.2c.2.3.6.5 1 .5h3.4c.7 0 1.2-.5 1.2-1.2s-.5-1.2-1.2-1.2h-2.8l-2.1-2.6c-.3-.4-.9-.6-1.5-.4Z" fill="currentColor"/><path d="m24.1 22.1-2.5 4.2c-.3.5-.2 1 .1 1.5l3.3 4.1c.4.5 1.2.6 1.7.2.5-.4.6-1.2.2-1.7l-2.8-3.5 2.5-4.2c.3-.5.2-1.1-.2-1.5l-2.5-2.5c-.5-.5-1.3-.5-1.7 0-.5.5-.5 1.3 0 1.7l1.9 1.7Z" fill="currentColor"/></svg>
+          </span>
+          <span>
+            <strong>خطواتي</strong>
+            <small>متابعة المشي اليومية</small>
+          </span>
+        </a>
+        <div class="topbar-actions">
+          <button class="icon-button" id="settingsButton" type="button" aria-label="فتح الإعدادات" title="الإعدادات">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"/><path d="m19.4 13.5 1.3 1-.9 1.6-1.6-.5a7.6 7.6 0 0 1-1.2 1.2l.5 1.6-1.6.9-1-1.3c-.5.2-1 .3-1.5.4l-.3 1.7h-1.8l-.3-1.7a7.6 7.6 0 0 1-1.6-.4l-1 1.3-1.6-.9.5-1.6a7.6 7.6 0 0 1-1.2-1.2l-1.6.5-.9-1.6 1.3-1c-.2-.5-.3-1-.4-1.5l-1.7-.3V10l1.7-.3c.1-.5.2-1 .4-1.5l-1.3-1 .9-1.6 1.6.5a7.6 7.6 0 0 1 1.2-1.2l-.5-1.6 1.6-.9 1 1.3c.5-.2 1-.3 1.6-.4l.3-1.7h1.8l.3 1.7c.5.1 1 .2 1.5.4l1-1.3 1.6.9-.5 1.6a7.6 7.6 0 0 1 1.2 1.2l1.6-.5.9 1.6-1.3 1c.2.5.3 1 .4 1.5l1.7.3v1.8l-1.7.3c-.1.5-.2 1-.4 1.5Z"/></svg>
+          </button>
+          <button class="avatar" type="button" aria-label="الحساب الشخصي">م</button>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="welcome-section" aria-labelledby="welcomeTitle">
+          <div>
+            <p class="eyebrow"><span class="live-dot"></span> متابعة اليوم</p>
+            <h1 id="welcomeTitle">كل خطوة بتفرق</h1>
+            <p class="welcome-copy" id="todayDate">تابعي مشيك النهارده وخلي التحسن واضح قدامك.</p>
+          </div>
+          <div class="motivation-note">
+            <span class="note-icon" aria-hidden="true">✦</span>
+            <span>الاستمرارية أهم من السرعة</span>
+          </div>
+        </section>
+
+        <section class="stats-grid" aria-label="ملخص التقدم">
+          <article class="stat-card stat-primary">
+            <div class="stat-heading"><span class="stat-icon walking-icon" aria-hidden="true">↗</span><span>مشي اليوم</span></div>
+            <div class="stat-value"><strong id="todayMinutes">—</strong><span>دقيقة</span></div>
+            <p class="stat-foot" id="todayStatus">سجّلي مشيك النهارده</p>
+          </article>
+          <article class="stat-card">
+            <div class="stat-heading"><span class="stat-icon flame-icon" aria-hidden="true">✦</span><span>أيام متتالية</span></div>
+            <div class="stat-value"><strong id="streakCount">0</strong><span>يوم</span></div>
+            <p class="stat-foot">كل يوم جديد بيقوّي العادة</p>
+          </article>
+          <article class="stat-card">
+            <div class="stat-heading"><span class="stat-icon chart-icon" aria-hidden="true">↗</span><span>متوسط آخر ٧ أيام</span></div>
+            <div class="stat-value"><strong id="averageMinutes">0</strong><span>دقيقة</span></div>
+            <p class="stat-foot" id="trendText">لسه بنبدأ المتابعة</p>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel log-panel" aria-labelledby="logTitle">
+            <div class="panel-header">
+              <div>
+                <p class="section-kicker">تسجيل جديد</p>
+                <h2 id="logTitle">سجّلي مشي النهارده</h2>
+              </div>
+              <span class="date-badge" id="formDate">اليوم</span>
+            </div>
+            <form id="walkForm" novalidate>
+              <div class="field-group">
+                <label for="walkDate">التاريخ</label>
+                <div class="input-with-icon"><span aria-hidden="true">▣</span><input id="walkDate" name="date" type="date" required /></div>
+              </div>
+              <div class="field-group">
+                <label for="walkMinutes">مشيتي كام دقيقة؟</label>
+                <div class="minutes-input"><input id="walkMinutes" name="minutes" type="number" min="1" max="600" inputmode="numeric" placeholder="00" required /><span>دقيقة</span></div>
+              </div>
+              <div class="field-group">
+                <label for="walkFeeling">كان إحساسك إيه؟ <span>(اختياري)</span></label>
+                <select id="walkFeeling" name="feeling">
+                  <option value="">اختاري وصفًا بسيطًا</option>
+                  <option value="مريح">مريح</option>
+                  <option value="مقبول">مقبول</option>
+                  <option value="متعب">متعب</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="walkNote">ملاحظة صغيرة <span>(اختياري)</span></label>
+                <textarea id="walkNote" name="note" rows="2" maxlength="120" placeholder="مثلاً: مشيت بعد الفطار"></textarea>
+              </div>
+              <button class="primary-button" type="submit"><span>حفظ تسجيل اليوم</span><span aria-hidden="true">←</span></button>
+              <p class="form-message" id="formMessage" role="status" aria-live="polite"></p>
+            </form>
+          </article>
+
+          <article class="panel chart-panel" aria-labelledby="chartTitle">
+            <div class="panel-header chart-header">
+              <div>
+                <p class="section-kicker">نظرة سريعة</p>
+                <h2 id="chartTitle">نشاطك خلال الأسبوع</h2>
+              </div>
+              <span class="legend"><i></i> دقائق المشي</span>
+            </div>
+            <div class="chart-wrap" id="weeklyChart" role="img" aria-label="رسم بياني لنشاط المشي خلال آخر سبعة أيام"></div>
+            <div class="chart-summary"><span id="chartSummary">سجّلي أول يوم عشان نبدأ الرسم.</span><a href="#history">عرض كل السجل <span aria-hidden="true">←</span></a></div>
+          </article>
+        </section>
+
+        <section class="panel history-panel" id="history" aria-labelledby="historyTitle">
+          <div class="panel-header history-header">
+            <div>
+              <p class="section-kicker">كل التسجيلات</p>
+              <h2 id="historyTitle">سجل المشي</h2>
+            </div>
+            <div class="history-tools"><span id="entriesCount">0 تسجيل</span><button class="text-button" id="clearButton" type="button">مسح الكل</button></div>
+          </div>
+          <div class="history-table-wrap">
+            <table>
+              <thead><tr><th scope="col">اليوم</th><th scope="col">المدة</th><th scope="col">الإحساس</th><th scope="col">ملاحظة</th><th scope="col"><span class="sr-only">إجراء</span></th></tr></thead>
+              <tbody id="historyBody"></tbody>
+            </table>
+            <div class="empty-state" id="emptyState">
+              <div class="empty-illustration" aria-hidden="true"><span>⌁</span></div>
+              <h3>لسه مفيش تسجيلات</h3>
+              <p>أول خطوة هي إنك تسجلي مشي النهارده.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="care-note" aria-label="تنبيه صحي">
+          <span class="care-icon" aria-hidden="true">♡</span>
+          <p><strong>خدي بالك من نفسك</strong><br />لو حسّيتي بألم شديد أو دوخة، وقّفي المشي واتّبعي تعليمات الطبيب المعالج.</p>
+        </section>
+      </main>
+
+      <footer><span>خطوات صغيرة، فرق كبير.</span><span>البيانات محفوظة على هذا الجهاز فقط</span></footer>
+    </div>
+
+    <dialog id="settingsDialog" class="settings-dialog">
+      <div class="dialog-header"><div><p class="section-kicker">الإعدادات</p><h2>هدف المشي اليومي</h2></div><button class="close-button" id="closeSettings" type="button" aria-label="إغلاق">×</button></div>
+      <form id="settingsForm">
+        <label for="goalMinutes">المدة المستهدفة كل يوم</label>
+        <div class="minutes-input"><input id="goalMinutes" type="number" min="1" max="600" required /><span>دقيقة</span></div>
+        <p class="dialog-help">الهدف يساعدك تلاحظي التقدم، لكنه لا يغيّر تعليمات الطبيب.</p>
+        <button class="primary-button" type="submit">حفظ الهدف</button>
+      </form>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
