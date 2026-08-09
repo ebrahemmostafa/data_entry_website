@@ -4,27 +4,13 @@ const SUPABASE_URL = "https://jcuqwcwkowtjxcykstlf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_BFtrH3u_sv9zat6B9SALyw_nS7Pajaa";
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
+const ENTRY_TABLE = "shared_walking_entries";
+const SETTINGS_TABLE = "shared_walking_settings";
 const LEGACY_STORAGE_KEY = "khatwati-walk-entries-v1";
 const LEGACY_GOAL_KEY = "khatwati-walk-goal-v1";
 const DEFAULT_GOAL = 20;
 
 const elements = {
-  authScreen: document.getElementById("authScreen"),
-  authForm: document.getElementById("authForm"),
-  authEmail: document.getElementById("authEmail"),
-  authPassword: document.getElementById("authPassword"),
-  authPasswordConfirm: document.getElementById("authPasswordConfirm"),
-  authConfirmField: document.getElementById("authConfirmField"),
-  authTitle: document.getElementById("authTitle"),
-  authSubmit: document.getElementById("authSubmit"),
-  authMessage: document.getElementById("authMessage"),
-  authModeToggle: document.getElementById("authModeToggle"),
-  appContent: document.getElementById("top"),
-  pageFooter: document.querySelector(".page-footer"),
-  topbarActions: document.getElementById("topbarActions"),
-  userEmail: document.getElementById("userEmail"),
-  userAvatar: document.getElementById("userAvatar"),
-  logoutButton: document.getElementById("logoutButton"),
   form: document.getElementById("walkForm"),
   date: document.getElementById("walkDate"),
   minutes: document.getElementById("walkMinutes"),
@@ -54,9 +40,6 @@ const elements = {
 
 let entries = [];
 let goal = DEFAULT_GOAL;
-let currentUser = null;
-let authMode = "signin";
-let loadedUserId = null;
 let toastTimer;
 
 function pad(number) {
@@ -104,6 +87,16 @@ function entryForDate(key) {
   return entries.find((entry) => entry.date === key);
 }
 
+function mapEntry(row) {
+  return {
+    id: row.id,
+    date: row.entry_date,
+    minutes: Number(row.minutes),
+    feeling: row.feeling || "",
+    note: row.note || ""
+  };
+}
+
 function readLegacyEntries() {
   try {
     const saved = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "[]");
@@ -118,11 +111,6 @@ function readLegacyGoal() {
   return saved > 0 && saved <= 600 ? saved : null;
 }
 
-function showAuthMessage(message, isError = false) {
-  elements.authMessage.textContent = message;
-  elements.authMessage.classList.toggle("error", isError);
-}
-
 function showFormMessage(message, isError = false) {
   elements.formMessage.textContent = message;
   elements.formMessage.classList.toggle("error", isError);
@@ -135,59 +123,10 @@ function showToast(message) {
   toastTimer = window.setTimeout(() => elements.toast.classList.remove("show"), 2800);
 }
 
-function authErrorMessage(error) {
-  const message = String(error?.message || "");
-  if (/invalid login credentials/i.test(message)) return "البريد الإلكتروني أو كلمة المرور غير صحيحة.";
-  if (/email not confirmed/i.test(message)) return "افتحي رسالة التأكيد في بريدك الإلكتروني أولًا.";
-  if (/already registered|already been registered/i.test(message)) return "البريد ده مسجل بالفعل، جرّبي تسجيل الدخول.";
-  if (/password should be at least/i.test(message)) return "كلمة المرور لازم تكون ٦ أحرف على الأقل.";
-  if (/rate limit/i.test(message)) return "حاولي مرة ثانية بعد قليل.";
-  return "حصلت مشكلة بسيطة. تأكدي من الاتصال بالإنترنت وحاولي مرة ثانية.";
-}
-
-function setAuthMode(nextMode) {
-  authMode = nextMode;
-  const isSignup = authMode === "signup";
-  elements.authScreen.classList.toggle("signup-mode", isSignup);
-  elements.authTitle.textContent = isSignup ? "اعملي حساب للمتابعة" : "سجّلي دخولك للمتابعة";
-  elements.authSubmit.firstChild.textContent = isSignup ? "إنشاء الحساب " : "تسجيل الدخول ";
-  elements.authModeToggle.textContent = isSignup ? "عندي حساب بالفعل — تسجيل الدخول" : "إنشاء حساب جديد";
-  elements.authPassword.setAttribute("autocomplete", isSignup ? "new-password" : "current-password");
-  showAuthMessage("");
-}
-
-function setAuthenticatedUi(user) {
-  const email = user?.email || "";
-  elements.userEmail.textContent = email;
-  elements.userEmail.title = email;
-  elements.userAvatar.textContent = email ? email.slice(0, 1).toUpperCase() : "م";
-  elements.authScreen.classList.add("hidden");
-  elements.appContent.classList.add("ready");
-  elements.pageFooter.classList.add("ready");
-  elements.topbarActions.classList.add("ready");
-}
-
-function setSignedOutUi() {
-  elements.authScreen.classList.remove("hidden");
-  elements.appContent.classList.remove("ready");
-  elements.pageFooter.classList.remove("ready");
-  elements.topbarActions.classList.remove("ready");
-}
-
-function mapEntry(row) {
-  return {
-    id: row.id,
-    date: row.entry_date,
-    minutes: Number(row.minutes),
-    feeling: row.feeling || "",
-    note: row.note || ""
-  };
-}
-
 async function saveGoalRemote(nextGoal) {
   const { data, error } = await supabase
-    .from("walking_settings")
-    .upsert({ owner_id: currentUser.id, goal_minutes: nextGoal, updated_at: new Date().toISOString() }, { onConflict: "owner_id" })
+    .from(SETTINGS_TABLE)
+    .upsert({ id: 1, goal_minutes: nextGoal, updated_at: new Date().toISOString() }, { onConflict: "id" })
     .select("goal_minutes")
     .single();
   if (error) throw error;
@@ -201,13 +140,12 @@ async function migrateLegacyData() {
 
   if (legacyEntries.length) {
     const payload = legacyEntries.map((entry) => ({
-      owner_id: currentUser.id,
       entry_date: entry.date,
       minutes: Number(entry.minutes),
       feeling: entry.feeling || null,
       note: entry.note?.trim() || null
     }));
-    const { error } = await supabase.from("walking_entries").upsert(payload, { onConflict: "owner_id,entry_date" });
+    const { error } = await supabase.from(ENTRY_TABLE).upsert(payload, { onConflict: "entry_date" });
     if (error) throw error;
     migrated = true;
   }
@@ -227,8 +165,8 @@ async function migrateLegacyData() {
 async function loadCloudData() {
   const legacyGoal = readLegacyGoal();
   const [entriesResult, settingsResult] = await Promise.all([
-    supabase.from("walking_entries").select("id,entry_date,minutes,feeling,note").order("entry_date", { ascending: false }),
-    supabase.from("walking_settings").select("goal_minutes").maybeSingle()
+    supabase.from(ENTRY_TABLE).select("id,entry_date,minutes,feeling,note").order("entry_date", { ascending: false }),
+    supabase.from(SETTINGS_TABLE).select("goal_minutes").eq("id", 1).maybeSingle()
   ]);
 
   if (entriesResult.error) throw entriesResult.error;
@@ -240,7 +178,7 @@ async function loadCloudData() {
   if (!entries.length) {
     const migrated = await migrateLegacyData();
     if (migrated) {
-      const { data, error } = await supabase.from("walking_entries").select("id,entry_date,minutes,feeling,note").order("entry_date", { ascending: false });
+      const { data, error } = await supabase.from(ENTRY_TABLE).select("id,entry_date,minutes,feeling,note").order("entry_date", { ascending: false });
       if (error) throw error;
       entries = (data || []).map(mapEntry);
     }
@@ -250,28 +188,6 @@ async function loadCloudData() {
     await saveGoalRemote(DEFAULT_GOAL);
   }
   render();
-}
-
-async function bootForUser(user) {
-  if (loadedUserId === user.id && elements.appContent.classList.contains("ready")) return;
-  currentUser = user;
-  loadedUserId = user.id;
-  setAuthenticatedUi(user);
-  showFormMessage("");
-  try {
-    await loadCloudData();
-  } catch (error) {
-    console.error(error);
-    showToast("مش قادرين نحمّل البيانات الآن. حاولي تحديث الصفحة.");
-  }
-}
-
-function resetForSignedOut() {
-  currentUser = null;
-  loadedUserId = null;
-  entries = [];
-  goal = DEFAULT_GOAL;
-  setSignedOutUi();
 }
 
 function calculateStreak() {
@@ -344,6 +260,10 @@ function renderChart() {
     : "سجّلي أول يوم عشان نبدأ الرسم.";
 }
 
+function escapeHtml(value) {
+  return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
+}
+
 function renderHistory() {
   const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
   elements.historyBody.innerHTML = sorted.map((entry) => {
@@ -354,10 +274,6 @@ function renderHistory() {
   elements.entriesCount.textContent = `${sorted.length} ${sorted.length === 1 ? "تسجيل" : "تسجيلات"}`;
 }
 
-function escapeHtml(value) {
-  return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[char]));
-}
-
 function render() {
   renderHeader();
   renderStats();
@@ -366,62 +282,6 @@ function render() {
 }
 
 elements.date.value = todayKey();
-setAuthMode("signin");
-
-elements.authModeToggle.addEventListener("click", () => {
-  setAuthMode(authMode === "signin" ? "signup" : "signin");
-});
-
-elements.authForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const email = elements.authEmail.value.trim();
-  const password = elements.authPassword.value;
-  const confirmation = elements.authPasswordConfirm.value;
-
-  if (!email || !email.includes("@")) {
-    showAuthMessage("اكتبي بريدًا إلكترونيًا صحيحًا.", true);
-    return;
-  }
-  if (password.length < 6) {
-    showAuthMessage("كلمة المرور لازم تكون ٦ أحرف على الأقل.", true);
-    return;
-  }
-  if (authMode === "signup" && password !== confirmation) {
-    showAuthMessage("كلمتا المرور غير متطابقتين.", true);
-    return;
-  }
-
-  elements.authSubmit.disabled = true;
-  showAuthMessage(authMode === "signup" ? "بنجهّز الحساب..." : "جارِ تسجيل الدخول...");
-  try {
-    if (authMode === "signup") {
-      const redirectUrl = new URL(window.location.href);
-      redirectUrl.hash = "";
-      redirectUrl.search = "";
-      const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: redirectUrl.toString() } });
-      if (error) throw error;
-      if (!data.session) {
-        showAuthMessage("اتعمل الحساب. افتحي رسالة التأكيد في بريدك الإلكتروني، وبعدها سجّلي الدخول.");
-      }
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-    }
-  } catch (error) {
-    console.error(error);
-    showAuthMessage(authErrorMessage(error), true);
-  } finally {
-    elements.authSubmit.disabled = false;
-  }
-});
-
-elements.logoutButton.addEventListener("click", async () => {
-  elements.logoutButton.disabled = true;
-  const { error } = await supabase.auth.signOut();
-  elements.logoutButton.disabled = false;
-  if (error) showToast("ماقدرناش نعمل تسجيل خروج. حاولي مرة ثانية.");
-});
-
 elements.date.addEventListener("change", renderHeader);
 
 elements.form.addEventListener("submit", async (event) => {
@@ -435,7 +295,6 @@ elements.form.addEventListener("submit", async (event) => {
 
   const existing = entryForDate(date);
   const payload = {
-    owner_id: currentUser.id,
     entry_date: date,
     minutes,
     feeling: elements.feeling.value || null,
@@ -448,7 +307,7 @@ elements.form.addEventListener("submit", async (event) => {
   button.disabled = true;
   showFormMessage("جارِ الحفظ أونلاين...");
   try {
-    const { data, error } = await supabase.from("walking_entries").upsert(payload, { onConflict: "owner_id,entry_date" }).select("id,entry_date,minutes,feeling,note").single();
+    const { data, error } = await supabase.from(ENTRY_TABLE).upsert(payload, { onConflict: "entry_date" }).select("id,entry_date,minutes,feeling,note").single();
     if (error) throw error;
     const savedEntry = mapEntry(data);
     if (existing) Object.assign(existing, savedEntry);
@@ -457,7 +316,7 @@ elements.form.addEventListener("submit", async (event) => {
     elements.minutes.value = "";
     elements.feeling.value = "";
     elements.note.value = "";
-    showFormMessage(existing ? "اتحدّث تسجيل اليوم أونلاين." : "اتحفظ تسجيل اليوم أونلاين.");
+    showFormMessage(existing ? "اتحدّث التسجيل المشترك أونلاين." : "اتحفظ التسجيل المشترك أونلاين.");
     showToast(existing ? "تم تحديث التسجيل" : "تم حفظ التسجيل أونلاين");
   } catch (error) {
     console.error(error);
@@ -473,7 +332,7 @@ elements.historyBody.addEventListener("click", async (event) => {
   const entry = entries.find((item) => item.id === button.dataset.id);
   if (!entry) return;
   button.disabled = true;
-  const { error } = await supabase.from("walking_entries").delete().eq("id", entry.id).eq("owner_id", currentUser.id);
+  const { error } = await supabase.from(ENTRY_TABLE).delete().eq("id", entry.id);
   if (error) {
     button.disabled = false;
     showToast("ماقدرناش نحذف التسجيل. حاولي مرة ثانية.");
@@ -485,9 +344,9 @@ elements.historyBody.addEventListener("click", async (event) => {
 });
 
 elements.clearButton.addEventListener("click", async () => {
-  if (!entries.length || !window.confirm("هل أنتِ متأكدة من مسح كل التسجيلات؟")) return;
+  if (!entries.length || !window.confirm("هل أنتِ متأكدة من مسح كل التسجيلات المشتركة؟")) return;
   elements.clearButton.disabled = true;
-  const { error } = await supabase.from("walking_entries").delete().eq("owner_id", currentUser.id);
+  const { error } = await supabase.from(ENTRY_TABLE).delete().gte("minutes", 1);
   elements.clearButton.disabled = false;
   if (error) {
     showToast("ماقدرناش نمسح السجل. حاولي مرة ثانية.");
@@ -495,7 +354,7 @@ elements.clearButton.addEventListener("click", async () => {
   }
   entries = [];
   render();
-  showToast("تم مسح السجل أونلاين");
+  showToast("تم مسح السجل المشترك");
 });
 
 elements.settingsButton.addEventListener("click", () => {
@@ -518,7 +377,7 @@ elements.settingsForm.addEventListener("submit", async (event) => {
     goal = await saveGoalRemote(nextGoal);
     elements.settingsDialog.close();
     render();
-    showToast("تم حفظ الهدف أونلاين");
+    showToast("تم حفظ الهدف المشترك أونلاين");
   } catch (error) {
     console.error(error);
     showToast("ماقدرناش نحفظ الهدف. حاولي مرة ثانية.");
@@ -527,18 +386,10 @@ elements.settingsForm.addEventListener("submit", async (event) => {
   }
 });
 
-supabase.auth.onAuthStateChange((_event, session) => {
-  window.setTimeout(() => {
-    if (session?.user) bootForUser(session.user);
-    else resetForSignedOut();
-  }, 0);
-});
-
-const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-if (sessionError) {
-  showAuthMessage("تعذّر الاتصال بالحساب. حدّثي الصفحة وحاولي مرة ثانية.", true);
-} else if (sessionData.session?.user) {
-  await bootForUser(sessionData.session.user);
-} else {
-  resetForSignedOut();
+try {
+  await loadCloudData();
+} catch (error) {
+  console.error(error);
+  render();
+  showFormMessage("حصلت مشكلة في الاتصال بالسجل المشترك. حاولي تحديث الصفحة.", true);
 }
